@@ -71,7 +71,7 @@ def add_chucha():
 	return (jsonify(response),201)
 
 #METHODS: PUT
-#DESCRIPTION: EDITAR USUARIO
+#DESCRIPTION: NUEVA CHUCHADA
 @mod_core.route("/users/<path:player>/chuchada", methods=['PUT'])
 def update_player(player):
 	user = User.query.filter_by(username=player).first()
@@ -97,7 +97,7 @@ def update_player(player):
 	return (jsonify(response),200)
 
 #METHODS: PUT
-#DESCRIPTION: EDITAR NOMBRE USUARIO
+#DESCRIPTION: EDITAR USUARIO
 @mod_core.route("/users/<int:user_id>",methods=["PUT"])
 def update_user(user_id):
 	user = User.query.get(user_id)
@@ -184,7 +184,7 @@ def charge():
 	final_amount = 0
 	for user in users:
 		final_amount+= user.amount
-		
+
 	charge = Charge()
 	charge.amount     = final_amount
 	charge.topic      = params[CHARGE.TOPIC]
@@ -195,6 +195,8 @@ def charge():
 	db.session.commit()
 
 	history = history_module.charge(charge,user)
+	reset()
+	
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
 	response['charge'] = charge.to_dict(show_all=True,hide=['by_user'])
@@ -202,4 +204,7 @@ def charge():
 	return (jsonify(response),200)
 
 def reset():
-	pass
+	users = User.query.all()
+	for user in users:
+		user.amount = 0
+		user.quantity = 0

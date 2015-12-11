@@ -5,6 +5,7 @@ CHARGE     = 2
 RESET      = 3
 CHALLENGER = 4
 NEWVALUE   = 5
+CHARGEUSER = 6
 FREE     = 999
 
 MESSAGES = {
@@ -14,6 +15,7 @@ MESSAGES = {
 	RESET:      "Chuchadas reseteadas",
 	CHALLENGER: "Nuevo participante: %s",
 	NEWVALUE:   "Nuevo valor por chuchada: %i, cambiado por: %s",
+	CHARGEUSER: "Se cargan %i a %s",
 	FREE:       "%s obtiene %s gratis"
 }
 
