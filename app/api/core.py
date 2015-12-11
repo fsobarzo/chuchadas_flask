@@ -57,7 +57,7 @@ def add_chucha():
 
 #METHODS: PUT
 #DESCRIPTION: EDITAR USUARIO
-@mod_core.route("/users/<path:player>", methods=['PUT'])
+@mod_core.route("/users/<path:player>/chuchada", methods=['PUT'])
 def update_player(player):
 	user = User.query.filter_by(username=player).first()
 	if not user:
