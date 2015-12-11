@@ -63,7 +63,14 @@ def update_player(player):
 	if not user:
 		return (jsonify({"error":"Usuario no existe"}),400)
 
-	user.quantity = user.quantity + 1
+	quantity = 1
+	if request.json and "quantity" in request.json:
+		quantity = int(request.json["quantity"])
+		if quantity < 0:
+			return (jsonify({"error":"Cantidad menor a 1"}))
+
+	user.quantity+= quantity
+	user.amount+= quantity*USER.VALUE
 	db.session.commit()
 
 	response = {}
