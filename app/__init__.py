@@ -10,6 +10,8 @@ db = SQLAlchemy(app)
 
 # from app.models.{{model_folder}}.model import {{model_name}}
 from app.models.user.model import User
+from app.models.history.model import History
+from app.models.charge.model import Charge
 
 db.create_all()
 db.session.commit()
@@ -23,7 +25,7 @@ app.json_encoder = DateJSONEncoder
 auto = Autodoc(app)
 
 #from core.api.users import mod_{{module_name}} as {{module_name}}_module
-from app.api.Core import mod_core as core_module
+from app.api.core import mod_core as core_module
 
 #Charge Module
 #core.register_blueprint({{name_module}})

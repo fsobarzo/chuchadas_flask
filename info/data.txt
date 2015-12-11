@@ -1,1 +1,1 @@
-curl -i -X POST http://204.87.169.50:5000/users -H "Content-Type: application/json" -d '{"name":"collaborator_name"}'
+curl -i -X POST http://localhost:5000/users -H "Content-Type: application/json" -d '{"username":"collaborator_name"}'

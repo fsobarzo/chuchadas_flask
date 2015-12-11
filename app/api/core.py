@@ -1,7 +1,13 @@
 from flask import Blueprint, request, jsonify, request
+from sqlalchemy import exc
 from app import app, db
 from app import auto
+from app.modules import history_module
 from app.models.user.model import User
+from app.models.history.model import History
+from app.models.charge.model import Charge
+from app.models.user import constants as USER
+from app.models.charge import constants as CHARGE
 from datetime import datetime
 
 mod_core = Blueprint('welcome',__name__)
@@ -30,7 +36,7 @@ def documentation():
 #METHODS: GET
 #DESCRIPTION: LISTA USUARIOS
 @mod_core.route("/users", methods=['GET'])
-def show_players():
+def show_users():
 	users = User.query.all()
 	users_dict = []
 	for user in users:
@@ -43,16 +49,25 @@ def show_players():
 def add_chucha():
 	if not request.json:
 		return (jsonify({"error":"Data no enviada"}),400)
-	if "name" not in request.json:
+	if USER.USERNAME not in request.json:
 		return (jsonify({"error":"Faltan datos"}),400)
 
 	user = User()
-	user.username = request.json["name"]
-	db.session.add(user)
-	db.session.commit()
+	user.username = request.json[USER.USERNAME]
+	try:
+		db.session.add(user)
+		db.session.commit()
+	except exc.IntegrityError as e:
+		message = "Usuario %s ya existe" % (user.username)
+		return (jsonify({"error":message}),400)
+	else:
+		return (jsonify({"error":"Error inesperado"}),400)
 	
+	history = history_module.new_challenger(user)
+
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
+	response['message'] = history.to_dict(show_all=True,hide=['user_by','user_by_id'])
 	return (jsonify(response),201)
 
 #METHODS: PUT
@@ -73,21 +88,32 @@ def update_player(player):
 	user.amount+= quantity*USER.VALUE
 	user.updated_at = datetime.now()
 	db.session.commit()
-
+	
+	history = history_module.new_chuchada(user,quantity)
+	
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
+	response['message'] = history.to_dict(show_all=True,hide=['user_by','user_by_id'])
 	return (jsonify(response),200)
 
 #METHODS: PUT
 #DESCRIPTION: EDITAR NOMBRE USUARIO
 @mod_core.route("/users/<int:user_id>",methods=["PUT"])
 def update_user(user_id):
-	if not request.json:
-		return (jsonify({"error":"Data no enviada"}),400)
-
 	user = User.query.get(user_id)
 	if not user:
 		return (jsonify({"error":"Usuario no existe"}),400)
+	
+	if not request.json:
+		return (jsonify({"error":"Data no enviada"}),400)
+	
+	if not USER.EDITOR in request.json:
+		return (jsonify({"error":"Falta usuario responsable"}))
+	
+	user_editor_id = int(request.json[USER.EDITOR])
+	user_editor = User.query.get(user_editor_id)
+	if not user_editor:
+		return (jsonify({"error":"Usuario editor no existe"}),400)
 	
 	params = user.to_dict(show_all=True,hide=["created_at","updated_at"])
 	for key in USER.COLUMNS:
@@ -96,8 +122,84 @@ def update_user(user_id):
 
 	user.username   = params[USER.USERNAME]
 	user.quantity   = params[USER.QUANTITY]
-	user.amout      = params[USER.QUANTITY]*USER.VALUE
+	user.amount     = params[USER.QUANTITY]*USER.VALUE
 	user.updated_at = datetime.now()
 	db.session.commit()
 
-	return (jsonify({"user":user.to_dict(show_all=True)}),200)
+	history = history_module.edit_user(user,user_editor)
+	
+	response = {}
+	response['user'] = user.to_dict(show_all=True)
+	response['message'] = history.to_dict(show_all=True,hide=['user_by','user_by_id'])
+
+	return (jsonify(response),200)
+
+#METHODS: GET
+#DESCRIPTION: HISTORIA
+#TODO: CARGAR ANTERIORES
+@mod_core.route("/histories",methods=["GET"])
+@mod_core.route('/histories/',methods=["GET"])
+@mod_core.route('/histories/<int:user_id>',methods=["GET"])
+def get_histories(user_id=None):
+	if user_id is None:
+		histories = History.query.limit(15).all()
+	else:
+		histories = History.query.filter(History.user_by_id == user_id).limit(15).all()
+
+	histories_dict = []
+	for history in histories:
+		histories_dict.append(history.to_dict(show_all=True))
+	return (jsonify({'histories': histories_dict}),200)
+
+#METHODS: GET
+#DESCRIPTION: LISTAR CARGOS 
+@mod_core.route("/charges",methods=["GET"])
+def charges():
+	charges = Charge.query.limit(15).all()
+	charges_dict = []
+	for charge in charges:
+		charges_dict.append(charge.to_dict(show_all=True))
+	return (jsonify({'charges': charges_dict}),200)
+
+#METHODS: POST
+#DESCRIPTION: NUEVO CARGO
+@mod_core.route("/charge",methods=["POST"])
+def charge():
+	if not request.json:
+		return (jsonify({"error":"Data no enviada"}),400)
+	
+	params = {}
+	for key in CHARGE.COLUMNS:
+		if key in request.json:
+			params[key] = request.json[key]
+		else:
+			return (jsonify({"error":"Falta usuario responsable"}),400)
+
+	user_id = int(params[CHARGE.BY_USER])
+	user = User.query.get(user_id)
+	if not user:
+		return (jsonify({"error":"Usuario no existe"}),400)
+
+	users = User.query.all()
+	final_amount = 0
+	for user in users:
+		final_amount+= user.amount
+		
+	charge = Charge()
+	charge.amount     = final_amount
+	charge.topic      = params[CHARGE.TOPIC]
+	charge.by_user_id = params[CHARGE.BY_USER]
+	charge.created_at = datetime.now()
+
+	db.session.add(charge)
+	db.session.commit()
+
+	history = history_module.charge(charge,user)
+	response = {}
+	response['user'] = user.to_dict(show_all=True)
+	response['charge'] = charge.to_dict(show_all=True,hide=['by_user'])
+	response['message'] = history.to_dict(show_all=True,hide=['user_by'])
+	return (jsonify(response),200)
+
+def reset():
+	pass
