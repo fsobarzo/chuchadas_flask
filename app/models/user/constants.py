@@ -1,1 +1,8 @@
 VALUE = 100
+USERNAME = "username"
+QUANTITY = "quantity"
+
+COLUMNS = {
+	USERNAME: "USERNAME",
+	QUANTITY: "QUANTITY"
+}
