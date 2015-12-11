@@ -77,8 +77,6 @@ def update_player(player):
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
 	return (jsonify(response),200)
-<<<<<<< HEAD
-=======
 
 #METHODS: PUT
 #DESCRIPTION: EDITAR NOMBRE USUARIO
@@ -103,4 +101,3 @@ def update_user(user_id):
 	db.session.commit()
 
 	return (jsonify({"user":user.to_dict(show_all=True)}),200)
->>>>>>> d6178ea81c2197b264b2b4cd38ab19d73e52c738
