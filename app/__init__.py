@@ -23,7 +23,7 @@ app.json_encoder = DateJSONEncoder
 auto = Autodoc(app)
 
 #from core.api.users import mod_{{module_name}} as {{module_name}}_module
-from app.api.Core import mod_core as core_module
+from app.api.core import mod_core as core_module
 
 #Charge Module
 #core.register_blueprint({{name_module}})
