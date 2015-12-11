@@ -27,6 +27,16 @@ def routes():
 def documentation():
 	return auto.html()
 
+#METHODS: GET
+#DESCRIPTION: LISTA USUARIOS
+@mod_core.route("/users", methods=['GET'])
+def show_players():
+	users = User.query.all()
+	users_dict = []
+	for user in users:
+		users_dict.append(user.to_dict(show_all=True))
+	return (jsonify({'users': users_dict}),200)
+
 #METHODS: POST 
 #DESCRIPTION: NUEVO USUARIO
 @mod_core.route("/users", methods=['POST'])
@@ -45,19 +55,9 @@ def add_chucha():
 	response['user'] = user.to_dict(show_all=True)
 	return (jsonify(response),201)
 
-#METHODS: GET
-#DESCRIPTION: LISTA USUARIOS
-@mod_core.route("/users", methods=['GET'])
-def show_players():
-	users = User.query.all()
-	users_dict = []
-	for user in users:
-		users_dict.append(user.to_dict(show_all=True))
-	return (jsonify({'users': users_dict}),200)
-
 #METHODS: PUT
 #DESCRIPTION: EDITAR USUARIO
-@mod_core.route("/users/<path:player>", methods=['PUT'])
+@mod_core.route("/users/<path:player>/chuchada", methods=['PUT'])
 def update_player(player):
 	user = User.query.filter_by(username=player).first()
 	if not user:
@@ -71,8 +71,36 @@ def update_player(player):
 
 	user.quantity+= quantity
 	user.amount+= quantity*USER.VALUE
+	user.updated_at = datetime.now()
 	db.session.commit()
 
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
 	return (jsonify(response),200)
+<<<<<<< HEAD
+=======
+
+#METHODS: PUT
+#DESCRIPTION: EDITAR NOMBRE USUARIO
+@mod_core.route("/users/<int:user_id>",methods=["PUT"])
+def update_user(user_id):
+	if not request.json:
+		return (jsonify({"error":"Data no enviada"}),400)
+
+	user = User.query.get(user_id)
+	if not user:
+		return (jsonify({"error":"Usuario no existe"}),400)
+	
+	params = user.to_dict(show_all=True,hide=["created_at","updated_at"])
+	for key in USER.COLUMNS:
+		if key in request.json:
+			params[key] = request.json[key]
+
+	user.username   = params[USER.USERNAME]
+	user.quantity   = params[USER.QUANTITY]
+	user.amout      = params[USER.QUANTITY]*USER.VALUE
+	user.updated_at = datetime.now()
+	db.session.commit()
+
+	return (jsonify({"user":user.to_dict(show_all=True)}),200)
+>>>>>>> d6178ea81c2197b264b2b4cd38ab19d73e52c738
