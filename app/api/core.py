@@ -142,9 +142,6 @@ def update_user(user_id):
 	user.updated_at = datetime.now()
 	db.session.commit()
 
-<<<<<<< HEAD
-	return (jsonify({"user":user.to_dict(show_all=True)}),200)
-=======
 	history = history_module.edit_user(user,user_editor)
 	
 	response = {}
@@ -230,4 +227,3 @@ def charge():
 	response['charge'] = charge.to_dict(show_all=True,hide=['by_user'])
 	response['message'] = history.to_dict(show_all=True,hide=['by_user'])
 	return (jsonify(response),200)
->>>>>>> master
