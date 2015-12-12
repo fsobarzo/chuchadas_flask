@@ -158,9 +158,9 @@ def update_user(user_id):
 @mod_core.route('/histories/<int:user_id>',methods=["GET"])
 def get_histories(user_id=None):
 	if user_id is None:
-		histories = History.query.limit(15).all()
+		histories = History.query.order_by(History.id.desc()).limit(15).all()
 	else:
-		histories = History.query.filter(History.by_user_id == user_id).limit(15).all()
+		histories = History.query.filter(History.by_user_id == user_id).order_by(History.id.desc()).limit(15).all()
 
 	histories_dict = []
 	for history in histories:
