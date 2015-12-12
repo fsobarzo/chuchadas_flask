@@ -10,6 +10,8 @@ db = SQLAlchemy(app)
 
 # from app.models.{{model_folder}}.model import {{model_name}}
 from app.models.user.model import User
+from app.models.history.model import History
+from app.models.charge.model import Charge
 
 db.create_all()
 db.session.commit()
