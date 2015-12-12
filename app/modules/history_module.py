@@ -12,7 +12,7 @@ def new_chuchada(user,quantity):
 	history = History()
 	history.tag        = HISTORY.CHUCHADA
 	history.text       = message
-	history.user_by_id = user.id
+	history.by_user_id = user.id
 	history.created_at = datetime.now()
 	
 	db.session.add(history)
@@ -26,7 +26,7 @@ def edit_user(user,user_editor):
 	history = History()
 	history.tag        = HISTORY.EDIT
 	history.text       = message
-	history.user_by_id = user_editor.id
+	history.by_user_id = user_editor.id
 	history.created_at = datetime.now()
 	
 	db.session.add(history)
@@ -39,9 +39,22 @@ def charge(charge,user):
 	history = History()
 	history.tag        = HISTORY.CHARGE
 	history.text       = message
-	history.user_by_id = user.id
+	history.by_user_id = user.id
 	history.created_at = datetime.now()
 	
+	db.session.add(history)
+	db.session.commit()
+	return history
+
+def charge_user(charge,user):
+	message = HISTORY.MESSAGES[HISTORY.CHARGEUSER]
+	message =  message % (user.amount, user.username.decode('utf8'), charge.id, charge.topic.decode('utf8'))
+	history = History()
+	history.tag        = HISTORY.CHARGEUSER
+	history.text       = message
+	history.by_user_id = user.id
+	history.created_at = datetime.now()
+
 	db.session.add(history)
 	db.session.commit()
 	return history
@@ -52,7 +65,7 @@ def new_challenger(user):
 	history = History()
 	history.tag        = HISTORY.CHALLENGER
 	history.text       = message
-	history.user_by_id = user.id
+	history.by_user_id = user.id
 	history.created_at = datetime.now()
 	
 	db.session.add(history)

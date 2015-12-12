@@ -8,6 +8,6 @@ class History(Model):
 	id          = db.Column(db.Integer, primary_key=True)
 	text        = db.Column(db.Text)
 	tag         = db.Column(db.Integer)
-	user_by_id  = db.Column(db.Integer,db.ForeignKey('users.id'))
-	user_by     = db.relationship('User',uselist=False,single_parent=True,foreign_keys = 'History.user_by_id')
+	by_user_id  = db.Column(db.Integer,db.ForeignKey('users.id'))
+	by_user     = db.relationship('User',uselist=False,single_parent=True,foreign_keys = 'History.by_user_id')
 	created_at  = db.Column(db.DateTime(timezone=False),default=datetime.utcnow)

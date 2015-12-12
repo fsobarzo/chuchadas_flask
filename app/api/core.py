@@ -60,19 +60,17 @@ def add_chucha():
 	except exc.IntegrityError as e:
 		message = "Usuario %s ya existe" % (user.username)
 		return (jsonify({"error":message}),400)
-	else:
-		return (jsonify({"error":"Error inesperado"}),400)
 	
 	history = history_module.new_challenger(user)
 
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
-	response['message'] = history.to_dict(show_all=True,hide=['user_by','user_by_id'])
+	response['message'] = history.to_dict(show_all=True,hide=['by_user','by_user_id'])
 	return (jsonify(response),201)
 
 #METHODS: PUT
 #DESCRIPTION: NUEVA CHUCHADA
-@mod_core.route("/users/<path:player>/chuchada", methods=['PUT'])
+@mod_core.route("/users/<path:player>/chuchada", methods=['GET','POST','PUT'])
 def update_player(player):
 	user = User.query.filter_by(username=player).first()
 	if not user:
@@ -82,10 +80,12 @@ def update_player(player):
 	if request.json and "quantity" in request.json:
 		quantity = int(request.json["quantity"])
 		if quantity < 0:
-			return (jsonify({"error":"Cantidad menor a 1"}))
+			return (jsonify({"error":"Cantidad menor a 1"}),400)
 
 	user.quantity+= quantity
 	user.amount+= quantity*USER.VALUE
+	user.quantity_total+=quantity
+	user.amount_total+= quantity*USER.VALUE
 	user.updated_at = datetime.now()
 	db.session.commit()
 	
@@ -93,7 +93,7 @@ def update_player(player):
 	
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
-	response['message'] = history.to_dict(show_all=True,hide=['user_by','user_by_id'])
+	response['message'] = history.to_dict(show_all=True,hide=['by_user','by_user_id'])
 	return (jsonify(response),200)
 
 #METHODS: PUT
@@ -120,9 +120,25 @@ def update_user(user_id):
 		if key in request.json:
 			params[key] = request.json[key]
 
+	if params[USER.QUANTITY] < 0:
+		return (jsonify({"error":"Cantidad no puede tener valores negativos"}),400)
+	elif params[USER.QUANTITY] ==  user.quantity:
+		return (jsonify({"error":"Usuario ya registra la cantidad de chuchadas"}),400)
+
+	old_quantity    = user.quantity
 	user.username   = params[USER.USERNAME]
 	user.quantity   = params[USER.QUANTITY]
 	user.amount     = params[USER.QUANTITY]*USER.VALUE
+	if old_quantity == 0:
+		user.quantity_total+= params[USER.QUANTITY] 
+		user.amount_total+= params[USER.QUANTITY]*USER.VALUE
+	elif old_quantity > params[USER.QUANTITY]:
+		user.quantity_total-= old_quantity - params[USER.QUANTITY]
+		user.amount_total-= (old_quantity - params[USER.QUANTITY])*USER.VALUE
+	elif old_quantity < params[USER.QUANTITY]:
+		user.quantity_total+= params[USER.QUANTITY] - old_quantity
+		user.amount_total+= (params[USER.QUANTITY] - old_quantity)*USER.VALUE
+
 	user.updated_at = datetime.now()
 	db.session.commit()
 
@@ -130,7 +146,7 @@ def update_user(user_id):
 	
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
-	response['message'] = history.to_dict(show_all=True,hide=['user_by','user_by_id'])
+	response['message'] = history.to_dict(show_all=True,hide=['by_user','by_user_id'])
 
 	return (jsonify(response),200)
 
@@ -144,7 +160,7 @@ def get_histories(user_id=None):
 	if user_id is None:
 		histories = History.query.limit(15).all()
 	else:
-		histories = History.query.filter(History.user_by_id == user_id).limit(15).all()
+		histories = History.query.filter(History.by_user_id == user_id).limit(15).all()
 
 	histories_dict = []
 	for history in histories:
@@ -182,9 +198,11 @@ def charge():
 
 	users = User.query.all()
 	final_amount = 0
-	for user in users:
-		final_amount+= user.amount
+	for u in users:
+		final_amount+= u.amount
 
+	if final_amount == 0:
+		return (jsonify({"error":"Monto Final: 0"}),400)
 	charge = Charge()
 	charge.amount     = final_amount
 	charge.topic      = params[CHARGE.TOPIC]
@@ -195,16 +213,17 @@ def charge():
 	db.session.commit()
 
 	history = history_module.charge(charge,user)
-	reset()
+	
+	users = User.query.all()
+	for u in users:
+		history_module.charge_user(charge,u)
+		u.amount = 0
+		u.quantity = 0
+		u.updated_at = datetime.now()
+	db.session.commit()
 	
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
 	response['charge'] = charge.to_dict(show_all=True,hide=['by_user'])
-	response['message'] = history.to_dict(show_all=True,hide=['user_by'])
+	response['message'] = history.to_dict(show_all=True,hide=['by_user'])
 	return (jsonify(response),200)
-
-def reset():
-	users = User.query.all()
-	for user in users:
-		user.amount = 0
-		user.quantity = 0

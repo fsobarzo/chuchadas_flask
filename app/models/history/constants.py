@@ -11,11 +11,11 @@ FREE     = 999
 MESSAGES = {
 	CHUCHADA:   "%s dijo %i chuchada%s%s",
 	EDIT:       "%s. Editado por %s",
-	CHARGE:     "Se cargan %i, ingresado por %s",
+	CHARGE:     "Carga final: %i, ingresado por %s",
 	RESET:      "Chuchadas reseteadas",
 	CHALLENGER: "Nuevo participante: %s",
 	NEWVALUE:   "Nuevo valor por chuchada: %i, cambiado por: %s",
-	CHARGEUSER: "Se cargan %i a %s",
+	CHARGEUSER: "Se cargan %i a %s, [%i] %s",
 	FREE:       "%s obtiene %s gratis"
 }
 
@@ -29,5 +29,9 @@ POOL = [
   ", lavenle la boca porfavor",
   ", que roto",
   ", que ordinario",
-  ", 2 ave maria y 3 padre nuestro"
+  ", 2 ave maria y 3 padre nuestro por pecador",
+  ", recorcholis",
+  ", santas groserias, Batman!",
+  ", muy bonito... PERO ESTA MAL!",
+  ", recurda que por cada grosería, dios mata un gatito"
 ]

@@ -7,7 +7,7 @@ class Charge(Model):
 	__tablename__ = 'charges'
 	id          = db.Column(db.Integer, primary_key=True)
 	topic       = db.Column(db.String(255))
-	amout       = db.Column(db.Integer)
+	amount      = db.Column(db.Integer)
 	by_user_id  = db.Column(db.Integer,db.ForeignKey('users.id'))
 	created_at  = db.Column(db.DateTime(timezone=False),default=datetime.utcnow)
 

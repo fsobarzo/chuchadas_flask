@@ -9,9 +9,8 @@ class User(Model):
 	username = db.Column(db.String(80), unique=True)
 	quantity = db.Column(db.Integer,default=0)
 	amount   = db.Column(db.Integer,default=0)
-	# AGREGAR TOTALES (EDIT, NEW, CHUCHADA)
-	# quantity_total = db.Column(db.Integer,default=0)
-	# amount_total   = db.Column(db.Integer,default=0)
+	quantity_total = db.Column(db.Integer,default=0)
+	amount_total   = db.Column(db.Integer,default=0)
 	
 	created_at = db.Column(db.DateTime(timezone=False),default=datetime.utcnow)
 	updated_at = db.Column(db.DateTime(timezone=False),default=datetime.utcnow)
