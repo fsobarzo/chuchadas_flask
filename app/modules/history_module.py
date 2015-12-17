@@ -35,7 +35,7 @@ def edit_user(user,user_editor):
 
 def charge(charge,user):
 	message = HISTORY.MESSAGES[HISTORY.CHARGE]
-	message = message % (charge.amount, user.username.decode('utf8'))
+	message = message % (charge.amount, charge.topic.decode('utf8'), user.username.decode('utf8'))
 	history = History()
 	history.tag        = HISTORY.CHARGE
 	history.text       = message
