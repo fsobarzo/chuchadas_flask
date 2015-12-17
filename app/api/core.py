@@ -43,6 +43,13 @@ def show_users():
 		users_dict.append(user.to_dict(show_all=True))
 	return (jsonify({'users': users_dict}),200)
 
+#METHODS: GET
+#DESCRIPTION: INFO USUARIO
+@mod_core.route("/users/<int:user_id>",methods=['GET'])
+def get_user(user_id):
+	user =  User.query.get_or_404(user_id)
+	return (jsonify({'user': user.to_dict(show_all=True)}))
+
 #METHODS: POST 
 #DESCRIPTION: NUEVO USUARIO
 @mod_core.route("/users", methods=['POST'])
@@ -100,10 +107,7 @@ def update_player(player):
 #DESCRIPTION: EDITAR USUARIO
 @mod_core.route("/users/<int:user_id>",methods=["PUT"])
 def update_user(user_id):
-	user = User.query.get(user_id)
-	if not user:
-		return (jsonify({"error":"Usuario no existe"}),400)
-	
+	user = User.query.get_or_404(user_id)
 	if not request.json:
 		return (jsonify({"error":"Data no enviada"}),400)
 	
