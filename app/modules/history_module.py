@@ -49,25 +49,16 @@ def charge(charge,user):
 def charge_user(charge,user):
 	message = HISTORY.MESSAGES[HISTORY.CHARGEUSER]
 	message =  message % (user.amount, user.username.decode('utf8'), charge.id, charge.topic.decode('utf8'))
-	history = History()
-	history.tag        = HISTORY.CHARGEUSER
-	history.text       = message
-	history.by_user_id = user.id
-	history.created_at = datetime.now()
-
-	db.session.add(history)
-	db.session.commit()
-	return history
+	return create_history(HISTORY.CHARGEUSER,message,user.id)
 
 def new_challenger(user):
 	message = HISTORY.MESSAGES[HISTORY.CHALLENGER]
 	message = message % (user.username.decode('utf8'))
+	return create_history(HISTORY.CHALLENGER,message,user.id)
+
+def create_history(tag,message,user_id):
 	history = History()
-	history.tag        = HISTORY.CHALLENGER
+	history.tag        = tag
 	history.text       = message
-	history.by_user_id = user.id
+	history.by_user_id = user_id
 	history.created_at = datetime.now()
-	
-	db.session.add(history)
-	db.session.commit()
-	return history
