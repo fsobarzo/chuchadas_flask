@@ -4,16 +4,6 @@ from app import db
 from datetime import datetime
 
 class History(Model):
-	MESSAGES = {
-		CHUCHADA:   "%s dijo %i chuchada%s%s",
-		EDIT:       "%s. Editado por %s",
-		CHARGE:     "Carga final: %i, ingresado por %s",
-		RESET:      "Chuchadas reseteadas",
-		CHALLENGER: "Nuevo participante: %s",
-		NEWVALUE:   "Nuevo valor por chuchada: %i, cambiado por: %s",
-		CHARGEUSER: "Se cargan %i a %s, [%i] %s",
-		FREE:       "%s obtiene %s gratis"
-	}
 	__tablename__ = 'histories'
 	id          = db.Column(db.Integer, primary_key=True)
 	text        = db.Column(db.Text)
