@@ -2,7 +2,6 @@ from app import db
 
 class  Model(db.Model):
 	__abstract__ = True
-
 	def to_dict(self, show=None, hide=None, path=None, show_all=None):
 		if not show:
 			show = []
@@ -46,13 +45,16 @@ class  Model(db.Model):
 			if show_all or key is 'id' or check in show or key in default:
 				ret_data[key] = getattr(self, key)
 
+		hide.append(self.__tablename__)
+		hide[:0] = hidden
 		for key in relationships:
-			check = '%s.%s' % (path, key)
-			if check in hide or key in hidden:
+			check = '%s.%s' % (path, key)	
+ 			if check in hide or key in hidden or key in hide:
 				continue
 			if show_all or check in show or key in default:
-				#hide.append(check)
 				is_list = self.__mapper__.relationships[key].uselist
+				if not key in hide:
+					hide.append(key)
 				if is_list:
 					ret_data[key] = []
 					for item in getattr(self, key):
@@ -60,15 +62,16 @@ class  Model(db.Model):
                             show=show,
                             hide=hide,
                             path=('%s.%s' % (path, key.lower())),
-                            show_all=show_all))
+                            show_all=show_all,
+                            ))
 				else:
 					if self.__mapper__.relationships[key].query_class is not None:
 						if getattr(self,key) is not None:
 							ret_data[key] = getattr(self, key).to_dict(
-                               show=show,
-                               hide=hide,
-                               path=('%s.%s' % (path, key.lower())),
-                               show_all=show_all)
+                                show=show,
+                                hide=hide,
+                                path=('%s.%s' % (path, key.lower())),
+                                show_all=show_all)
 					else:
 						ret_data[key] = getattr(self, key)
 

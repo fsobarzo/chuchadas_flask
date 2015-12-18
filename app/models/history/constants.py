@@ -10,7 +10,7 @@ FREE     = 999
 
 MESSAGES = {
 	CHUCHADA:   "%s dijo %i chuchada%s%s",
-	EDIT:       "%s. Editado por %s",
+	EDIT:       "User: %i, Nombre: %s, Cantidad: %i, Dinero: %i. Editado por %s",
 	CHARGE:     "Carga final: %i para %s, ingresado por %s",
 	RESET:      "Chuchadas reseteadas",
 	CHALLENGER: "Nuevo participante: %s",
