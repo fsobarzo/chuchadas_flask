@@ -51,15 +51,9 @@ def charge():
 	db.session.commit()
 	history = history_module.charge(charge,user)
 
-	# ENVIAR A OTRA FUNCION
 	users = User.query.all()
-	for u in users:
-		history_module.charge_user(charge,u)
-		u.amount = 0
-		u.quantity = 0
-		u.updated_at = datetime.now()
-	db.session.commit()
-	
+	history_module.reset(charge,users)
+
 	response = {}
 	response['user'] = user.to_dict(show_all=True)
 	response['charge'] = charge.to_dict(show_all=True,hide=['by_user'])

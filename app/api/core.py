@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, request
 from sqlalchemy import exc
-from app import app, db
+from app import app, db, errors
 from app import auto
 from app.modules import history_module
 from app.models.user.model import User
@@ -20,7 +20,7 @@ def welcome():
 
 #METHODS: GET
 #DESCRIPTION: RUTAS
-@mod_core.route("/routes", methods =['GET'])
+@mod_core.route("/routes/", methods =['GET'])
 def routes():
 	func_list = {}
 	for rule in app.url_map.iter_rules():
@@ -35,15 +35,12 @@ def documentation():
 
 #METHODS: GET
 #DESCRIPTION: LISTA USUARIOS
-@mod_core.route("/users", methods=['GET'])
+@mod_core.route("/users/", methods=['GET'])
 @auto.doc(groups=['public'])
 def show_users():
 	"""Muestra a los usuarios."""
 	users = User.query.all()
-	users_dict = []
-	for user in users:
-		users_dict.append(user.to_dict(show_all=True))
-	return (jsonify({'users': users_dict}),200)
+	return (jsonify({'users': [user.to_dict(show_all=True) for user in users] }),200)
 
 #METHODS: GET
 #DESCRIPTION: INFO USUARIO
@@ -56,10 +53,10 @@ def get_user(user_id):
 
 #METHODS: POST 
 #DESCRIPTION: NUEVO USUARIO
-@mod_core.route("/users", methods=['POST'])
+@mod_core.route("/users/", methods=['POST'])
 def add_chucha():
 	if not request.json:
-		return (jsonify({"error":"Data no enviada"}),400)
+		raise errors.InvalidData()
 	if USER.USERNAME not in request.json:
 		return (jsonify({"error":"Faltan datos"}),400)
 
@@ -81,17 +78,16 @@ def add_chucha():
 
 #METHODS: PUT
 #DESCRIPTION: NUEVA CHUCHADA
-@mod_core.route("/users/<path:player>/chuchada", methods=['GET','POST','PUT'])
+@mod_core.route("/users/<player>/chuchada", methods=['GET','POST','PUT'])
 def update_player(player):
-	user = User.query.filter_by(username=player).first()
-	if not user:
-		return (jsonify({"error":"Usuario no existe"}),400)
-
-	quantity = 1
+	user = User.query.filter_by(username=player).first_or_404()
+	
 	if request.json and "quantity" in request.json:
 		quantity = int(request.json["quantity"])
 		if quantity < 0:
 			return (jsonify({"error":"Cantidad menor a 1"}),400)
+	else:
+		quantity = 1
 
 	user.quantity+= quantity
 	user.amount+= quantity*USER.VALUE
@@ -113,16 +109,15 @@ def update_player(player):
 def update_user(user_id):
 	user = User.query.get_or_404(user_id)
 	if not request.json:
-		return (jsonify({"error":"Data no enviada"}),400)
+		raise errors.InvalidData()
 	
 	if not USER.EDITOR in request.json:
-		return (jsonify({"error":"Falta usuario responsable"}))
+		msg = 'Missing parameter: {column}'.format(column=key)
+		raise errors.InvalidData(msg)		
 	
 	user_editor_id = int(request.json[USER.EDITOR])
-	user_editor = User.query.get(user_editor_id)
-	if not user_editor:
-		return (jsonify({"error":"Usuario editor no existe"}),400)
-	
+	user_editor = User.query.get_or_404(user_editor_id)
+
 	params = user.to_dict(show_all=True,hide=["created_at","updated_at"])
 	for key in USER.COLUMNS:
 		if key in request.json:

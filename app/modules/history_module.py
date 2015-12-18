@@ -35,6 +35,14 @@ def new_challenger(user):
 	message = message % (user.username.decode('utf8'))
 	return create_history(HISTORY.CHALLENGER,message,user.id)
 
+def reset(charge,users):
+	for u in users:
+		charge_user(charge,u)
+		u.amount = 0
+		u.quantity = 0
+		u.updated_at = datetime.now()	
+	db.session.commit()
+
 def create_history(tag,message,user_id):
 	history = History()
 	history.tag        = tag
